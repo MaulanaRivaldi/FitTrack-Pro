@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FitTrack Pro - Your Fitness Companion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/_sdk/data_sdk.js"></script>
+    <script src="/_sdk/element_sdk.js"></script>
+    <style>
+      body {
+        box-sizing: border-box;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+      .fade-in {
+        animation: fadeIn 0.5s ease-out;
+      }
+      .pulse-animation {
+        animation: pulse 2s infinite;
+      }
+      .glass-effect {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      input[type='range']::-webkit-slider-thumb {
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        cursor: pointer;
+        background: #a855f7;
+      }
+    </style>
+  </head>
+  <body class="h-full bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white font-sans overflow-auto flex flex-col">
+    <div id="app" class="w-full flex-grow">
+      <nav class="w-full bg-black bg-opacity-40 backdrop-blur-lg border-b border-white border-opacity-10 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between items-center h-16">
+            <div class="flex items-center space-x-2">
+              <svg class="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span id="nav-title" class="text-xl font-bold">FitTrack Pro</span>
+            </div>
+
+            <div class="hidden md:flex space-x-2">
+              <button onclick="showPage('dashboard')" class="nav-btn px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 transition-all text-sm font-medium">Dashboard</button>
+              <button onclick="showPage('tools')" class="nav-btn px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 transition-all text-sm font-medium">Tools</button>
+              <button onclick="showPage('journal')" class="nav-btn px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 transition-all text-sm font-medium">Journal</button>
+              <button onclick="showPage('progress')" class="nav-btn px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 transition-all text-sm font-medium text-sm font-medium">Progres</button>
+            </div>
+
+            <div class="md:hidden flex items-center">
+              <button id="burger-btn" class="p-2 rounded-lg hover:bg-white hover:bg-opacity-10 transition-all">
+                <svg id="burger-icon" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="mobile-menu" class="hidden md:hidden bg-gray-900 bg-opacity-95 border-b border-white border-opacity-10 fade-in">
+          <div class="px-4 py-4 space-y-2">
+            <button onclick="closeMobileNav('dashboard')" class="flex items-center w-full px-4 py-3 rounded-xl hover:bg-purple-600 transition-all"><span class="text-xl mr-3">📊</span> Dashboard</button>
+            <button onclick="closeMobileNav('tools')" class="flex items-center w-full px-4 py-3 rounded-xl hover:bg-purple-600 transition-all"><span class="text-xl mr-3">🔧</span> Tools</button>
+            <button onclick="closeMobileNav('journal')" class="flex items-center w-full px-4 py-3 rounded-xl hover:bg-purple-600 transition-all"><span class="text-xl mr-3">📝</span> Journal</button>
+            <button onclick="closeMobileNav('progress')" class="flex items-center w-full px-4 py-3 rounded-xl hover:bg-purple-600 transition-all"><span class="text-xl mr-3">📈</span> Progres</button>
+          </div>
+        </div>
+      </nav>
+
+      <main class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div id="page-dashboard" class="page-content">
+          <div class="text-center mb-8 fade-in">
+            <h1 class="text-4xl sm:text-5xl font-bold mb-2">Selamat datang!</h1>
+            <p class="text-lg sm:text-xl text-purple-300">Your Personal Fitness Companion</p>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div class="glass-effect rounded-2xl p-6 fade-in">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-gray-200 font-bold">BMI Terakhir</h3>
+                <span class="text-3xl">⚖️</span>
+              </div>
+              <p id="last-bmi" class="text-4xl font-bold text-green-400">--</p>
+              <p class="text-sm text-gray-400 mt-2 font-medium">Belum ada data</p>
+            </div>
+            <div class="glass-effect rounded-2xl p-6 fade-in">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-gray-200 font-bold">Latihan Minggu Ini</h3>
+                <span class="text-3xl">💪</span>
+              </div>
+              <p id="weekly-workouts" class="text-4xl font-bold text-blue-400">0</p>
+              <p class="text-sm text-gray-400 mt-2 font-medium">Sesi latihan</p>
+            </div>
+            <div class="glass-effect rounded-2xl p-6 fade-in">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-gray-200 font-bold">Kalori Terbakar</h3>
+                <span class="text-3xl">🔥</span>
+              </div>
+              <p id="weekly-calories" class="text-4xl font-bold text-orange-400">0</p>
+              <p class="text-sm text-gray-400 mt-2 font-medium font-medium">kkal minggu ini</p>
+            </div>
+          </div>
+          <div class="glass-effect rounded-2xl p-8 text-center fade-in">
+            <p class="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 pulse-animation" id="motivation-text">"Progress, not perfection"</p>
+          </div>
+        </div>
+
+        <div id="page-tools" class="page-content hidden">
+          <h2 class="text-3xl font-bold mb-8 text-center">Kalkulator Fitness</h2>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="glass-effect rounded-2xl p-6">
+              <h3 class="text-2xl font-bold mb-6 flex items-center"><span class="mr-3">📏</span> Kalkulator BMI</h3>
+              <div class="space-y-6">
+                <div>
+                  <label class="block text-sm font-medium mb-2">Berat Badan (kg)</label>
+                  <input type="range" id="weight-slider" min="30" max="200" value="70" class="w-full h-2 bg-purple-600 rounded-lg appearance-none cursor-pointer" />
+                  <input type="number" id="weight-input" min="30" max="200" value="70" class="w-full mt-2 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl px-4 py-2 text-white text-center text-xl font-bold" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-2">Tinggi Badan (cm)</label>
+                  <input type="range" id="height-slider" min="100" max="250" value="170" class="w-full h-2 bg-purple-600 rounded-lg appearance-none cursor-pointer" />
+                  <input type="number" id="height-input" min="100" max="250" value="170" class="w-full mt-2 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl px-4 py-2 text-white text-center text-xl font-bold" />
+                </div>
+                <div class="flex gap-4">
+                  <button onclick="calculateBMI()" class="flex-grow bg-gradient-to-r from-green-500 to-blue-500 text-white py-4 rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-green-500/50 transition-all">Hitung BMI</button>
+                  <button onclick="clearBMI()" class="px-6 bg-white bg-opacity-10 hover:bg-opacity-20 rounded-xl font-bold border border-white border-opacity-20 transition-all text-sm">Clear</button>
+                </div>
+                <div id="bmi-result" class="hidden bg-white bg-opacity-10 rounded-xl p-6 text-center fade-in">
+                  <p class="text-lg mb-2">BMI Anda:</p>
+                  <p class="text-5xl font-bold text-green-400 mb-2" id="bmi-value">--</p>
+                  <p class="text-sm font-medium" id="bmi-category">--</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="glass-effect rounded-2xl p-6">
+              <h3 class="text-2xl font-bold mb-6 flex items-center"><span class="mr-3">🏃</span> Kalkulator Kalori Lari</h3>
+              <div class="space-y-6">
+                <div>
+                  <label class="block text-sm font-medium mb-2">Berat Badan (kg)</label>
+                  <input type="range" id="calorie-weight-slider" min="30" max="200" value="70" class="w-full h-2 bg-orange-600 rounded-lg appearance-none cursor-pointer" />
+                  <input type="number" id="calorie-weight-input" min="30" max="200" value="70" class="w-full mt-2 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl px-4 py-2 text-white text-center text-xl font-bold" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-2">Durasi Lari (menit)</label>
+                  <input type="range" id="duration-slider" min="5" max="120" value="30" class="w-full h-2 bg-orange-600 rounded-lg appearance-none cursor-pointer" />
+                  <input type="number" id="duration-input" min="5" max="120" value="30" class="w-full mt-2 bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl px-4 py-2 text-white text-center text-xl font-bold" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-2">Intensitas</label>
+                  <select id="intensity-select" class="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl px-4 py-3 text-white">
+                    <option value="5" class="bg-gray-800">Santai (5 km/jam)</option>
+                    <option value="8" class="bg-gray-800" selected>Sedang (8 km/jam)</option>
+                    <option value="12" class="bg-gray-800">Cepat (12 km/jam)</option>
+                  </select>
+                </div>
+                <div class="flex gap-4">
+                  <button onclick="calculateCalories()" class="flex-grow bg-gradient-to-r from-orange-500 to-red-500 text-white py-4 rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-orange-500/50 transition-all">
+                    Hitung Kalori
+                  </button>
+                  <button onclick="clearCalories()" class="px-6 bg-white bg-opacity-10 hover:bg-opacity-20 rounded-xl font-bold border border-white border-opacity-20 transition-all text-sm">Clear</button>
+                </div>
+                <div id="calorie-result" class="hidden bg-white bg-opacity-10 rounded-xl p-6 text-center fade-in">
+                  <p class="text-lg mb-2 font-medium">Kalori Terbakar:</p>
+                  <p class="text-5xl font-bold text-orange-400 mb-2" id="calorie-value">--</p>
+                  <p class="text-sm font-medium">kkal</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="page-journal" class="page-content hidden">
+          <h2 class="text-3xl font-bold mb-8 text-center">Journal Latihan</h2>
+          <div class="glass-effect rounded-2xl p-6 max-w-2xl mx-auto mb-8">
+            <h3 class="text-xl font-bold mb-6 font-bold">Catat Latihan Hari Ini</h3>
+            <form id="journal-form" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">Jenis Latihan</label>
+                <select id="exercise-type" class="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl px-4 py-3 text-white">
+                  <option value="cardio" class="bg-gray-800 font-medium">Cardio</option>
+                  <option value="strength" class="bg-gray-800 font-medium">Strength Training</option>
+                  <option value="yoga" class="bg-gray-800 font-medium">Yoga</option>
+                  <option value="sports" class="bg-gray-800 font-medium">Olahraga</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2 font-medium">Durasi (menit)</label>
+                <input type="number" id="exercise-duration" min="1" class="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl px-4 py-3 text-white font-bold" placeholder="30" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2 font-medium font-medium">Catatan</label>
+                <textarea id="exercise-notes" rows="3" class="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl px-4 py-3 text-white font-medium" placeholder="Bagaimana latihan Anda hari ini?"></textarea>
+              </div>
+              <button type="submit" class="w-full bg-gradient-to-r from-green-500 to-blue-500 text-white py-4 rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-green-500/50 transition-all font-bold">Simpan Latihan</button>
+            </form>
+          </div>
+          <div id="journal-list" class="space-y-4"></div>
+        </div>
+
+        <div id="page-progress" class="page-content hidden">
+          <h2 class="text-3xl font-bold mb-8 text-center font-bold">Statistik Progres</h2>
+          <div class="glass-effect rounded-2xl p-6 mb-8 max-w-4xl mx-auto">
+            <h3 class="text-2xl font-bold mb-6 flex items-center font-bold"><span class="mr-3">🎯</span> Target Berat Badan</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <label class="block text-sm font-medium mb-2 font-medium">Berat Badan Saat Ini (kg)</label>
+                <input type="number" id="current-weight" class="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl px-4 py-3 text-white text-center text-2xl font-bold font-bold" />
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2 font-medium">Target Berat Badan (kg)</label>
+                <input type="number" id="target-weight" class="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl px-4 py-3 text-white text-center text-2xl font-bold" />
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium mb-2">Tinggi Badan (cm)</label>
+                <input type="number" id="goal-height" class="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl px-4 py-3 text-white text-center text-2xl font-bold" />
+              </div>
+            </div>
+            <button onclick="calculateGoal()" class="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white py-4 rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-pink-500/50 transition-all">Hitung Target</button>
+            <div id="goal-result" class="hidden mt-6 space-y-4">
+              <div class="bg-white bg-opacity-10 rounded-xl p-6 text-center grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <p class="text-sm text-gray-400">BMI Saat Ini</p>
+                  <p class="text-3xl font-bold text-blue-400 font-bold font-bold" id="current-bmi-goal">--</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-400 font-medium">BMI Target</p>
+                  <p class="text-3xl font-bold text-green-400 font-bold" id="target-bmi-goal">--</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-400 font-medium font-medium">Perubahan BB</p>
+                  <p class="text-3xl font-bold text-purple-400 font-bold" id="weight-diff">--</p>
+                </div>
+              </div>
+              <div class="bg-white bg-opacity-10 rounded-xl p-6">
+                <h4 class="font-bold text-lg mb-3 font-bold font-bold">📋 Rekomendasi</h4>
+                <div class="space-y-2 text-sm">
+                  <p id="goal-type" class="text-lg font-bold font-bold">--</p>
+                  <p id="weekly-change" class="font-medium font-medium">--</p>
+                  <p id="daily-calories" class="font-medium font-medium font-medium font-medium">--</p>
+                  <p id="goal-advice" class="mt-3 text-gray-400 font-medium font-medium">--</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="glass-effect rounded-2xl p-6">
+              <h3 class="text-xl font-bold mb-4 font-bold font-bold">Riwayat BMI</h3>
+              <canvas id="bmi-chart"></canvas>
+            </div>
+            <div class="glass-effect rounded-2xl p-6">
+              <h3 class="text-xl font-bold mb-4 font-bold">Kalori Terbakar</h3>
+              <canvas id="calories-chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <footer class="w-full py-6 mt-auto bg-black bg-opacity-30 border-t border-white border-opacity-10 text-center">
+      <div class="max-w-7xl mx-auto px-4">
+        <p class="text-gray-400 text-sm">&copy; 2025 <span class="text-purple-400 font-bold">FitTrack Pro</span>. All Rights Reserved.</p>
+      </div>
+    </footer>
+
+    <script>
+      const defaultConfig = {
+        app_title: 'FitTrack Pro',
+        tagline: 'Your Personal Fitness Companion',
+        welcome_message: 'Selamat datang di perjalanan fitness Anda!',
+        motivation_quote: 'Progress, not perfection',
+        background_color: '#1a1a2e',
+        card_color: '#16213e',
+        primary_color: '#10b981',
+        secondary_color: '#3b82f6',
+        text_color: '#ffffff',
+      };
+
+      let currentPage = 'dashboard';
+      let allRecords = [];
+      let bmiChart = null;
+      let caloriesChart = null;
+
+      // --- NAV LOGIC ---
+      const burgerBtn = document.getElementById('burger-btn');
+      const burgerIcon = document.getElementById('burger-icon');
+      const mobileMenu = document.getElementById('mobile-menu');
+
+      burgerBtn.addEventListener('click', () => {
+        const isMenuOpen = !mobileMenu.classList.contains('hidden');
+        if (isMenuOpen) {
+          mobileMenu.classList.add('hidden');
+          burgerIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />`;
+        } else {
+          mobileMenu.classList.remove('hidden');
+          burgerIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />`;
+        }
+      });
+
+      function closeMobileNav(page) {
+        showPage(page);
+        mobileMenu.classList.add('hidden');
+        burgerIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />`;
+      }
+
+      function showPage(page) {
+        currentPage = page;
+        document.querySelectorAll('.page-content').forEach((p) => p.classList.add('hidden'));
+        const target = document.getElementById(`page-${page}`);
+        if (target) target.classList.remove('hidden');
+
+        document.querySelectorAll('.nav-btn').forEach((btn) => {
+          btn.classList.remove('bg-white', 'bg-opacity-20');
+          if (btn.innerText.toLowerCase().includes(page)) btn.classList.add('bg-white', 'bg-opacity-20');
+        });
+      }
+
+      // --- CLEAR FUNCTIONS ---
+      function clearBMI() {
+        document.getElementById('weight-input').value = 70;
+        document.getElementById('weight-slider').value = 70;
+        document.getElementById('height-input').value = 170;
+        document.getElementById('height-slider').value = 170;
+        document.getElementById('bmi-result').classList.add('hidden');
+        showToast('Input BMI dibersihkan');
+      }
+
+      function clearCalories() {
+        document.getElementById('calorie-weight-input').value = 70;
+        document.getElementById('calorie-weight-slider').value = 70;
+        document.getElementById('duration-input').value = 30;
+        document.getElementById('duration-slider').value = 30;
+        document.getElementById('intensity-select').value = '8';
+        document.getElementById('calorie-result').classList.add('hidden');
+        showToast('Input kalori dibersihkan');
+      }
+
+      // --- CALCULATIONS ---
+      async function calculateBMI() {
+        const w = parseFloat(document.getElementById('weight-input').value);
+        const h = parseFloat(document.getElementById('height-input').value) / 100;
+        if (!w || !h || w <= 0 || h <= 0) return showToast('Input tidak valid');
+        const bmi = (w / (h * h)).toFixed(1);
+        let cat = bmi < 18.5 ? 'Kurang Berat' : bmi < 25 ? 'Normal' : bmi < 30 ? 'Kelebihan' : 'Obesitas';
+        document.getElementById('bmi-value').textContent = bmi;
+        document.getElementById('bmi-category').textContent = cat;
+        document.getElementById('bmi-result').classList.remove('hidden');
+        if (window.dataSdk) await window.dataSdk.create({ type: 'bmi', date: new Date().toISOString(), bmi: parseFloat(bmi), weight: w });
+      }
+
+      async function calculateCalories() {
+        const d = parseFloat(document.getElementById('duration-input').value);
+        const int = parseFloat(document.getElementById('intensity-select').value);
+        const w = parseFloat(document.getElementById('calorie-weight-input').value);
+        if (!d || !w || d <= 0 || w <= 0) return showToast('Input tidak valid');
+        const cal = Math.round((int * 3.5 * w * d) / 200);
+        document.getElementById('calorie-value').textContent = cal;
+        document.getElementById('calorie-result').classList.remove('hidden');
+        if (window.dataSdk) await window.dataSdk.create({ type: 'calories', date: new Date().toISOString(), calories_burned: cal, exercise_duration: d });
+      }
+
+      // --- APP SETUP ---
+      async function initializeApp() {
+        if (window.dataSdk) {
+          await window.dataSdk.init({
+            onDataChanged: (data) => {
+              allRecords = data;
+              updateDashboard();
+              updateJournalList();
+              updateCharts();
+            },
+          });
+        }
+        setupSliders();
+        setupCharts();
+        showPage('dashboard');
+      }
+
+      function setupSliders() {
+        const pairs = [
+          ['weight-slider', 'weight-input'],
+          ['height-slider', 'height-input'],
+          ['calorie-weight-slider', 'calorie-weight-input'],
+          ['duration-slider', 'duration-input'],
+        ];
+        pairs.forEach(([sId, iId]) => {
+          const s = document.getElementById(sId);
+          const i = document.getElementById(iId);
+          s.oninput = () => (i.value = s.value);
+          i.oninput = () => (s.value = i.value);
+        });
+      }
+
+      document.getElementById('journal-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const type = document.getElementById('exercise-type').value;
+        const dur = document.getElementById('exercise-duration').value;
+        const note = document.getElementById('exercise-notes').value;
+        if (window.dataSdk) {
+          await window.dataSdk.create({ type: 'exercise', exercise_type: type, exercise_duration: dur, notes: note, date: new Date().toISOString() });
+          e.target.reset();
+          showToast('Berhasil dicatat!');
+        }
+      };
+
+      function updateDashboard() {
+        const bmiRecs = allRecords.filter((r) => r.type === 'bmi');
+        document.getElementById('last-bmi').textContent = bmiRecs.length ? bmiRecs[bmiRecs.length - 1].bmi.toFixed(1) : '--';
+        const week = new Date();
+        week.setDate(week.getDate() - 7);
+        document.getElementById('weekly-workouts').textContent = allRecords.filter((r) => r.type === 'exercise' && new Date(r.date) > week).length;
+        document.getElementById('weekly-calories').textContent = allRecords.filter((r) => r.type === 'calories' && new Date(r.date) > week).reduce((s, r) => s + (r.calories_burned || 0), 0);
+      }
+
+      function updateJournalList() {
+        const list = document.getElementById('journal-list');
+        const data = allRecords.filter((r) => r.type === 'exercise').sort((a, b) => new Date(b.date) - new Date(a.date));
+        list.innerHTML = data.length
+          ? data
+              .map(
+                (r) => `
+                <div class="glass-effect rounded-xl p-4 fade-in flex justify-between">
+                    <div>
+                        <h4 class="font-bold capitalize">${r.exercise_type} - ${r.exercise_duration} min</h4>
+                        <p class="text-xs text-gray-400">${new Date(r.date).toLocaleDateString()}</p>
+                        <p class="text-sm mt-1">${r.notes || ''}</p>
+                    </div>
+                    <button onclick="deleteRecord('${r.__backendId}')" class="text-red-400">🗑️</button>
+                </div>`
+              )
+              .join('')
+          : '<p class="text-center text-gray-400 font-medium">Belum ada catatan</p>';
+      }
+
+      async function deleteRecord(id) {
+        const r = allRecords.find((x) => x.__backendId === id);
+        if (r && window.dataSdk) await window.dataSdk.delete(r);
+      }
+
+      function setupCharts() {
+        const cfg = {
+          responsive: true,
+          plugins: { legend: { labels: { color: '#fff' } } },
+          scales: { x: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.05)' } }, y: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.05)' } } },
+        };
+        bmiChart = new Chart(document.getElementById('bmi-chart'), { type: 'line', data: { labels: [], datasets: [{ label: 'BMI', data: [], borderColor: '#10b981', tension: 0.3 }] }, options: cfg });
+        caloriesChart = new Chart(document.getElementById('calories-chart'), { type: 'bar', data: { labels: [], datasets: [{ label: 'Kalori', data: [], backgroundColor: '#f97316' }] }, options: cfg });
+      }
+
+      function updateCharts() {
+        const bmiD = allRecords.filter((r) => r.type === 'bmi').slice(-7);
+        bmiChart.data.labels = bmiD.map((r) => new Date(r.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }));
+        bmiChart.data.datasets[0].data = bmiD.map((r) => r.bmi);
+        bmiChart.update();
+
+        const calD = allRecords.filter((r) => r.type === 'calories').slice(-7);
+        caloriesChart.data.labels = calD.map((r) => new Date(r.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }));
+        caloriesChart.data.datasets[0].data = calD.map((r) => r.calories_burned);
+        caloriesChart.update();
+      }
+
+      function showToast(m) {
+        const t = document.createElement('div');
+        t.className = 'fixed bottom-4 right-4 bg-purple-600 px-6 py-3 rounded-lg fade-in z-[60] shadow-2xl font-bold';
+        t.textContent = m;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 3000);
+      }
+
+      function calculateGoal() {
+        const cw = parseFloat(document.getElementById('current-weight').value);
+        const tw = parseFloat(document.getElementById('target-weight').value);
+        const h = parseFloat(document.getElementById('goal-height').value) / 100;
+        if (!cw || !tw || !h || cw <= 0 || tw <= 0 || h <= 0) return showToast('Data belum lengkap');
+        const cbmi = (cw / (h * h)).toFixed(1);
+        const tbmi = (tw / (h * h)).toFixed(1);
+        const diff = (tw - cw).toFixed(1);
+        document.getElementById('current-bmi-goal').textContent = cbmi;
+        document.getElementById('target-bmi-goal').textContent = tbmi;
+        document.getElementById('weight-diff').textContent = `${diff > 0 ? '+' : ''}${diff} kg`;
+        document.getElementById('goal-type').textContent = diff > 0 ? '📈 Menaikkan Berat Badan' : '📉 Menurunkan Berat Badan';
+        document.getElementById('goal-result').classList.remove('hidden');
+      }
+
+      initializeApp();
+    </script>
+  </body>
+</html>
